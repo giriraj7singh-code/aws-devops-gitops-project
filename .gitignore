@@ -29,3 +29,6 @@ credentials
 # Operating system and editor files
 .DS_Store
 *.swp
+
+# Maven generated build files
+target/
