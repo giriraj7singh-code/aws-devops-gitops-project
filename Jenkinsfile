@@ -27,7 +27,7 @@ pipeline {
         stage('Test') {
             steps {
                 dir('app') {
-                    sh 'mvn -B clean test'
+                    sh 'mvn -B clean verify'
                 }
             }
             post {
@@ -38,6 +38,26 @@ pipeline {
             }
         }
 
+        stage('SonarCloud Analysis') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'sonar-token',
+                        variable: 'SONAR_TOKEN'
+                    )
+                ]) {
+                    dir('app') {
+                        sh '''
+                            mvn -B \
+                              org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                              -Dsonar.token="$SONAR_TOKEN" \
+                              -Dsonar.qualitygate.wait=true \
+                              -Dsonar.qualitygate.timeout=300
+                        '''
+                    }
+                }
+            }
+        }
         stage('Package') {
             steps {
                 dir('app') {
