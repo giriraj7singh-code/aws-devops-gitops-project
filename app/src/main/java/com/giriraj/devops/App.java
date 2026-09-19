@@ -21,7 +21,7 @@ public class App {
 
         server.createContext("/", exchange ->
                 sendJson(exchange, 200,
-                        "{\"message\":\"Giriraj DevOps API is running\"}")
+                        "{\"message\":\"Giriraj DevOps API deployed automatically by Jenkins\"}")
         );
 
         server.createContext("/health", exchange ->
