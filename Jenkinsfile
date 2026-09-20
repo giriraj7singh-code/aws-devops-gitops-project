@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = 'devops-api'
+        IMAGE_NAME = 'girirajs7/devops-api'
         IMAGE_TAG = '1.0.0'
     }
 
@@ -82,53 +82,25 @@ pipeline {
                 '''
             }
         }
-        stage('Import Image into K3s') {
+        stage('Push Image to Docker Hub') {
             steps {
-                sh '''
-                    docker save ${IMAGE_NAME}:${IMAGE_TAG} |
-                      sudo /usr/local/bin/k3s ctr images import -
-                '''
-            }
-        }
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" |
+                          docker login \
+                            --username "$DOCKERHUB_USERNAME" \
+                            --password-stdin
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh '''
-                    kubectl apply -f kubernetes/
-
-                    kubectl rollout restart \
-                      deployment/devops-api \
-                      -n devops
-
-                    kubectl rollout status \
-                      deployment/devops-api \
-                      -n devops \
-                      --timeout=120s
-                '''
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    for attempt in $(seq 1 12); do
-                        if curl -fsS http://127.0.0.1:30080/health; then
-                            echo
-                            echo "Kubernetes application is healthy"
-                            exit 0
-                        fi
-
-                        echo "Waiting for Kubernetes application: attempt ${attempt}/12"
-                        sleep 5
-                    done
-
-                    kubectl get all -n devops -o wide
-                    kubectl logs \
-                      -n devops \
-                      -l app=devops-api \
-                      --tail=100
-                    exit 1
-                '''
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker logout
+                    '''
+                }
             }
         }
     }
@@ -140,7 +112,7 @@ pipeline {
         }
 
         always {
-            sh 'kubectl get all -n devops -o wide || true'
+            sh 'docker logout || true'
         }
     }
 }

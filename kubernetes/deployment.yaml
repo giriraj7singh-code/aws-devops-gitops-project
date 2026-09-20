@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: devops-api
-          image: devops-api:1.0.0
+          image: girirajs7/devops-api:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
