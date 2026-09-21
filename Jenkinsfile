@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'girirajs7/devops-api'
-        IMAGE_TAG = '1.0.0'
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
     }
 
     stages {
