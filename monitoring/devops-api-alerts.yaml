@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: devops-api-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: devops-api.rules
+      rules:
+        - alert: DevOpsApiReplicasUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="devops", deployment="devops-api"} < 2
+          for: 30s
+          labels:
+            severity: warning
+            application: devops-api
+          annotations:
+            summary: DevOps API has insufficient replicas
+            description: Fewer than two devops-api replicas have been available for over 30 seconds.
